@@ -12,12 +12,12 @@
 <form name="userForm">
   <input type="hidden" name="id" value="0" />
   <div class="form-group">
-    <label for="name">Имя:</label>
-    <input class="form-control" name="name" />
+    <label for="fullName">Имя:</label>
+    <input class="form-control" name="fullName" />
   </div>
   <div class="form-group">
-    <label for="age">Возраст:</label>
-    <input class="form-control" name="age" />
+    <label for="email">Email:</label>
+    <input class="form-control" name="email" />
   </div>
   <div class="panel-body">
     <button type="submit" class="btn btn-sm btn-primary">Сохранить</button>
@@ -25,7 +25,7 @@
   </div>
 </form>
 <table class="table table-condensed table-striped table-bordered">
-  <thead><tr><th>Id</th><th>Имя</th><th>возраст</th><th></th></tr></thead>
+  <thead><tr><th>Id</th><th>Имя</th><th>email</th><th></th></tr></thead>
   <tbody>
   </tbody>
 </table>
@@ -56,20 +56,20 @@
       success: function (user) {
         var form = document.forms["userForm"];
         form.elements["id"].value = user._id;
-        form.elements["name"].value = user.name;
-        form.elements["age"].value = user.age;
+        form.elements["fullName"].value = user.fullName;
+        form.elements["email"].value = user.email;
       }
     });
   }
   // Добавление пользователя
-  function CreateUser(userName, userAge) {
+  function CreateUser(userName, userEmail) {
     $.ajax({
       url: "api/users",
       contentType: "application/json",
       method: "POST",
       data: JSON.stringify({
-        name: userName,
-        age: userAge
+        fullName: userName,
+        email: userEmail
       }),
       success: function (user) {
         reset();
@@ -78,15 +78,15 @@
     })
   }
   // Изменение пользователя
-  function EditUser(userId, userName, userAge) {
+  function EditUser(userId, userName, userEmail) {
     $.ajax({
       url: "api/users",
       contentType: "application/json",
       method: "PUT",
       data: JSON.stringify({
         id: userId,
-        name: userName,
-        age: userAge
+        fullName: userName,
+        email: userEmail
       }),
       success: function (user) {
         reset();
@@ -118,7 +118,7 @@
   // создание строки для таблицы
   var row = function (user) {
     return "<tr data-rowid='" + user._id + "'><td>" + user._id + "</td>" +
-        "<td>" + user.name + "</td> <td>" + user.age + "</td>" +
+        "<td>" + user.fullName + "</td> <td>" + user.email + "</td>" +
         "<td><a class='editLink' data-id='" + user._id + "'>Изменить</a> | " +
         "<a class='removeLink' data-id='" + user._id + "'>Удалить</a></td></tr>";
   }
@@ -133,12 +133,12 @@
   $("form").submit(function (e) {
     e.preventDefault();
     var id = this.elements["id"].value;
-    var name = this.elements["name"].value;
-    var age = this.elements["age"].value;
+    var name = this.elements["fullName"].value;
+    var email = this.elements["email"].value;
     if (id == 0)
-      CreateUser(name, age);
+      CreateUser(name, email);
     else
-      EditUser(id, name, age);
+      EditUser(id, name, email);
   });
 
   // нажимаем на ссылку Изменить

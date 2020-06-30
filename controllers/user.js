@@ -1,55 +1,67 @@
-const User = require("../models")
+const db = require("../models")
+
+
 module.exports = {
-  allUsers: function allUsers(req, res) {
 
-    User.find({}, function (err, users) {
-
-      if (err) return console.log(err);
-      res.send(users)
-    });
+  allUsers: async function allUsers(req, res) {
+    try {
+      const users = await db.User.find();
+      res.json(users);
+    } catch (e) {
+      console.error(e);
+      res.sendStatus(500);
+    }
   },
-  findOne: function (req, res) {
-
-    const id = req.params.id;
-    User.findOne({_id: id}, function (err, user) {
-
-      if (err) return console.log(err);
-      res.send(user);
-    });
+  findOne: async function findOne(req, res) {
+    try {
+      const id = req.params.id;
+      const user = await db.User.findOne({_id: id});
+      res.json(user)
+    } catch (e) {
+      console.error(e);
+      res.sendStatus(500);
+    }
   },
-  save: function (req, res) {
-
-    if (!req.body) return res.sendStatus(400);
-
-    const userName = req.body.name;
-    const userAge = req.body.age;
-    const user = new User({name: userName, age: userAge});
-
-    user.save(function (err) {
-      if (err) return console.log(err);
-      res.send(user);
-    });
+  save: async function save(req, res) {
+    try {
+      if (!req.body) {
+        return res.sendStatus(400);
+      }
+      const userName = req.body.fullName;
+      const userEmail = req.body.email;
+      const user = new db.User({fullName: userName, email: userEmail});
+      const newUser = await user.save();
+      res.send(newUser);
+    } catch (e) {
+      console.error(e);
+      res.sendStatus(500);
+    }
   },
-  delete: function (req, res) {
 
-    const id = req.params.id;
-    User.findByIdAndDelete(id, function (err, user) {
-
-      if (err) return console.log(err);
+  delete: async function (req, res) {
+    try {
+      const id = req.params.id;
+      const user = await db.User.findByIdAndDelete(id);
       res.send(user);
-    });
+    } catch (e) {
+      console.error(e);
+      res.sendStatus(500);
+    }
+
   },
-  update: function (req, res) {
-
-    if (!req.body) return res.sendStatus(400);
-    const id = req.body.id;
-    const userName = req.body.name;
-    const userAge = req.body.age;
-    const newUser = {age: userAge, name: userName};
-
-    User.findOneAndUpdate({_id: id}, newUser, {new: true}, function (err, user) {
-      if (err) return console.log(err);
+  update: async function (req, res) {
+    try {
+      if (!req.body) return res.sendStatus(400);
+      const id = req.body.id;
+      const userName = req.body.fullName;
+      const email = req.body.email;
+      const newUser = {email: email, fullName: userName};
+      const user = await db.User.findOneAndUpdate({_id: id}, newUser, {new: true});
       res.send(user);
-    });
+    } catch (e) {
+      console.error(e);
+      res.sendStatus(500);
+    }
+
   }
 }
