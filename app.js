@@ -1,20 +1,11 @@
 const express = require("express");
-const jsonParser = require("body-parser")
-
+const bodyParser = require("body-parser")
+const routes = require("./routes")
 const app = express();
 
-const userController = require("./controllers/user")
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
-app.use(express.static(__dirname + "/public"));
-
-app.get("/api/users", userController.allUsers);
-
-app.get("/api/users/:id", userController.findOne);
-
-app.post("/api/users", jsonParser.json(), userController.save);
-
-app.delete("/api/users/:id", userController.delete);
-
-app.patch("/api/users", jsonParser.json(), userController.update);
-
+app.use ("/auth", routes.authorization);
+app.use ("/user", routes.user);
 module.exports = app;

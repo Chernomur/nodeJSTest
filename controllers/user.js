@@ -1,67 +1,101 @@
 const db = require("../models")
+const crypto = require("../utils/crypto")
+const validation = require("../utils/validation")
 
 
 module.exports = {
 
   allUsers: async function allUsers(req, res) {
     try {
-      const users = await db.User.find();
+      const users = await db.User.find().select("-password");
       res.json(users);
     } catch (e) {
       console.error(e);
-      res.sendStatus(500);
+      res.send(e.message);
+      return;
     }
   },
   findOne: async function findOne(req, res) {
     try {
-      const id = req.params.id;
-      const user = await db.User.findOne({_id: id});
+      const {id} = req.params;
+
+      if (req.user.role !== "admin" && !req.user._id === id) {
+        res.sendStatus(403);
+        return;
+      }
+
+      let user = await db.User.findOne({_id: id}).select("-password");
       res.json(user)
+
     } catch (e) {
       console.error(e);
-      res.sendStatus(500);
+      res.send(e.message);
+      return;
     }
   },
-  save: async function save(req, res) {
+  create: async function create(req, res) {
     try {
-      if (!req.body) {
-        return res.sendStatus(400);
-      }
-      const userName = req.body.fullName;
-      const userEmail = req.body.email;
-      const user = new db.User({fullName: userName, email: userEmail});
-      const newUser = await user.save();
-      res.send(newUser);
+
+      const {fullName, email, password} = req.body;
+      let user = new db.User({fullName, email, password: crypto(password)});
+      await user.save();
+      user = user.toJSON();
+      delete user.password;
+      res.json(user);
     } catch (e) {
-      console.error(e);
-      res.sendStatus(500);
+      console.error(e.name);
+      const valid=validation(e);
+      res.status(valid.code).send(valid.message);
+      return;
     }
   },
 
   delete: async function (req, res) {
     try {
       const id = req.params.id;
-      const user = await db.User.findByIdAndDelete(id);
-      res.send(user);
+      if (req.user.role !== "admin" && !req.user._id === id) {
+        res.sendStatus(403);
+        return;
+      }
+      await db.User.findByIdAndDelete(id);
+      res.sendStatus(204);
+
     } catch (e) {
       console.error(e);
-      res.sendStatus(500);
+      res.send(e.message);
+      return;
     }
 
   },
   update: async function (req, res) {
     try {
-      if (!req.body) return res.sendStatus(400);
-      const id = req.body.id;
-      const userName = req.body.fullName;
-      const email = req.body.email;
-      const newUser = {email: email, fullName: userName};
-      const user = await db.User.findOneAndUpdate({_id: id}, newUser, {new: true});
-      res.send(user);
+      const {id} = req.params;
+      if (req.user.role !== "admin" && !req.user._id === id) {
+        res.sendStatus(403);
+        return;
+      }
+      let user = await db.User.findById(id);
+
+      const {fullName, email, password} = req.body;
+      if (fullName) {
+        user.fullName = fullName
+      }
+
+      if (email) {
+        user.email = email;
+      }
+      if (password) {
+        user.password = crypto(password);
+      }
+      await user.save();
+      user = user.toJSON();
+      delete user.password;
+      res.json(user);
     } catch (e) {
       console.error(e);
-      res.sendStatus(500);
+      const valid=validation(e);
+      res.status(valid.code).send(valid.message);
+      return;
     }
-
-  }
+  },
 }

@@ -2,25 +2,27 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const userScheme = new Schema(
     {
+      role: {
+        type: String,
+        enum : ['client','admin'],
+        default: 'client'
+      },
       fullName: {
         type: String,
-        required: true,
-        minlength:3,
-        maxlength:50
+        minlength: 3,
+        maxlength: 50
       },
       email: {
         type: String,
         trim: true,
         lowercase: true,
         unique: true,
-        required: 'Email address is required',
-       match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address']
+        required:[true, 'Email address is required'],
+        match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address']
       },
-      password:{
+      password: {
         type: String,
-        required: false,
-        minlength:6,
-        maxlength:50
+        required: true,
       }
     },
     {versionKey: false});
