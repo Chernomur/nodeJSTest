@@ -1,24 +1,34 @@
-module.exports = (e) => {
-  if (e.code === 11000) {
-    if(e.message.includes("email")){
-      let message;
-      message = "this email is already in use.";
-      return ({code: 400, message});
+// const isPasswordValid = (password) => {
+//   return true || false;
+// };
+
+// module.exports = {
+//   password: isPasswordValid
+// };
+
+
+
+
+// Rename to errorHandler
+module.exports = (err) => {
+  if (err.code === 11000) {
+    if (err.message.includes("email")) {
+      return ({ code: 400, message: "this email is already in use." });
     }
-    let message = "duplicate key";
-    return ({code: 400, message});
+    return ({ code: 400, message: "duplicate key" });
   }
-  if (e.name === "ValidationError") {
+
+  if (err.name === "ValidationError") {
     let message;
-    if(e.message.includes("email")){
-      message = "incorrect e-mail" ;
+    if (err.message.includes("email")) {
+      message = "incorrect e-mail";
     }
-    return({code: 400, message});
+    return ({ code: 400, message });
   }
-  if (e.name === "CastError") {
-    let message="cast error";
-    return({code: 404, message});
+
+  if (err.name === "CastError") {
+    return ({ code: 404, message: "cast error" });
   }
-  let message="server error";
-  return({code: 500, message});
+
+  return ({ code: 500, message: "server error" });
 }

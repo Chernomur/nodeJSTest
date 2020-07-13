@@ -1,9 +1,9 @@
 module.exports = async (req, res, next) => {
   try {
     if (req.user.role !== "admin") {
-      res.sendStatus(403);
-      return;
+      return res.sendStatus(403);
     }
+
     next();
   } catch (e) {
     console.error(e)
