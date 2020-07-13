@@ -1,5 +1,6 @@
 const db = require("../models")
 const crypto = require("../utils/crypto")
+const errorHandler = require("../utils/errorHandler")
 const validation = require("../utils/validation")
 
 module.exports = {
@@ -15,13 +16,13 @@ module.exports = {
   },
   findOne: async function findOne(req, res) {
     try {
-      const { id } = req.params;
+      const {id} = req.params;
 
       if (req.user.role !== "admin" && !req.user._id === id) {
         return res.sendStatus(403);
       }
 
-      let user = await db.User.findOne({ _id: id }).select("-password");
+      let user = await db.User.findOne({_id: id}).select("-password");
       if (!user) {
         return res.sendStatus(404);
       }
@@ -34,10 +35,13 @@ module.exports = {
   },
   create: async function create(req, res) {
     try {
-      const { fullName, email, password } = req.body;
+      const {fullName, email, password} = req.body;
 
-      // Password validation
-      let user = new db.User({ fullName, email, password: crypto(password) });
+      if (!validation.password(password)) {
+        return res.status(400).send("password validation failed");
+      }
+
+      let user = new db.User({fullName, email, password: crypto(password)});
 
       await user.save();
       user = user.toJSON();
@@ -46,7 +50,8 @@ module.exports = {
       res.json(user);
     } catch (e) {
       console.error(e.name);
-      const error = validation(e);
+
+      const error = errorHandler(e);
       res.status(error.code).send(error.message);
     }
   },
@@ -63,32 +68,32 @@ module.exports = {
 
       res.sendStatus(204);
     } catch (e) {
-      // Add 404 error
       console.error(e);
-      res.send(e.message);
+
+      const error = errorHandler(e);
+      res.status(error.code).send(error.message);
     }
 
   },
   update: async function (req, res) {
     try {
-      const { id } = req.params;
-      const { fullName, email, password } = req.body;
+      const {id} = req.params;
+      const {fullName, email, password} = req.body;
 
       if (req.user.role !== "admin" && !req.user._id === id) {
         res.sendStatus(403);
         return;
       }
       let user = await db.User.findById(id);
-      if (!user) {
-        return res.sendStatus(404);
-      }
 
       if (fullName) {
         user.fullName = fullName
       }
-
       if (email) {
         user.email = email;
+      }
+      if (!validation.password(password)) {
+        return res.status(400).send("password validation failed");
       }
       if (password) {
         user.password = crypto(password);
@@ -101,7 +106,8 @@ module.exports = {
       res.json(user);
     } catch (e) {
       console.error(e);
-      const error = validation(e);
+
+      const error = errorHandler(e);
       res.status(error.code).send(error.message);
     }
   },
